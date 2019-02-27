@@ -11,6 +11,8 @@
 #include "midx.h"
 #include "packfile.h"
 #include "object-store.h"
+#include "revision.h"
+#include "list-objects.h"
 
 static int delta_base_offset = 1;
 static int pack_kept_objects = -1;
@@ -256,6 +258,30 @@ static void repack_promisor_objects(const struct pack_objects_args *args,
 		die(_("could not finish pack-objects to repack promisor objects"));
 }
 
+static void apkt_show_commit(struct commit *commit, void *data)
+{
+	struct tree *tree;
+	struct pack_entry e;
+
+	if (!find_pack_entry(the_repository, &commit->object.oid, &e))
+		return;
+
+	if (!(e.p->pack_keep || e.p->pack_keep_in_core))
+		return;
+
+	tree = get_commit_tree(commit);
+	if (tree)
+		tree->object.flags |= UNINTERESTING;
+
+	write_oid(&commit->object.oid, e.p, 0, data);
+	write_oid(&tree->object.oid, NULL, 0, data);
+}
+
+static void apkt_show_object(struct object *obj, const char *name, void *data)
+{
+	return;
+}
+
 #define ALL_INTO_ONE 1
 #define LOOSEN_UNREACHABLE 2
 
@@ -287,6 +313,7 @@ int cmd_repack(int argc, const char **argv, const char *prefix)
 	struct string_list keep_pack_list = STRING_LIST_INIT_NODUP;
 	int no_update_server_info = 0;
 	int midx_cleared = 0;
+	int assume_pack_keep_transitive = 0;
 	struct pack_objects_args po_args = {NULL};
 	int sparse = 0;
 
@@ -329,6 +356,8 @@ int cmd_repack(int argc, const char **argv, const char *prefix)
 				N_("repack objects in packs marked with .keep")),
 		OPT_BOOL(0, "sparse", &sparse,
 			 N_("use the sparse reachability algorithm")),
+		OPT_BOOL(0, "assume-pack-keep-transitive", &assume_pack_keep_transitive,
+				N_("assume kept packs reference only kept packs")),
 		OPT_STRING_LIST(0, "keep-pack", &keep_pack_list, N_("name"),
 				N_("do not repack this pack")),
 		OPT_END()
@@ -345,6 +374,12 @@ int cmd_repack(int argc, const char **argv, const char *prefix)
 	if (keep_unreachable &&
 	    (unpack_unreachable || (pack_everything & LOOSEN_UNREACHABLE)))
 		die(_("--keep-unreachable and -A are incompatible"));
+
+	if (assume_pack_keep_transitive) {
+		/* imply --honor-pack-keep and --sparse*/
+		pack_kept_objects = 0;
+		sparse = 1;
+	}
 
 	if (write_bitmaps < 0)
 		write_bitmaps = (pack_everything & ALL_INTO_ONE) &&
@@ -407,11 +442,30 @@ int cmd_repack(int argc, const char **argv, const char *prefix)
 		argv_array_push(&cmd.args, "--incremental");
 	}
 
-	cmd.no_stdin = 1;
+	cmd.in = -1;
+	cmd.no_stdin = !assume_pack_keep_transitive;
 
 	ret = start_command(&cmd);
 	if (ret)
 		return ret;
+
+	if (assume_pack_keep_transitive) {
+		struct rev_info revs;
+		const char *revargv[] = { "skip", "--all", "--reflog", "--indexed-objects", NULL };
+
+		repo_init_revisions(the_repository, &revs, NULL);
+		revs.sparse_tree_walk = sparse;
+		setup_revisions(sizeof(revargv)/sizeof(revargv[0]) - 1, revargv, &revs, NULL);
+		if (prepare_revision_walk(&revs))
+			die(_("revision walk setup failed"));
+
+		xwrite(cmd.in, "--not\n", 6);
+		traverse_commit_list(&revs, apkt_show_commit, apkt_show_object,
+				     &cmd);
+		xwrite(cmd.in, "--not\n", 6);
+
+		close(cmd.in);
+	}
 
 	out = xfdopen(cmd.out, "r");
 	while (strbuf_getline_lf(&line, out) != EOF) {

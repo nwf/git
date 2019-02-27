@@ -169,6 +169,27 @@ depth is 4095.
 	Pass the `--sparse` option to `git-pack-objects`; see
 	linkgit:git-pack-objects[1].
 
+--assume-pack-keep-transitive::
+	This flag accelerates the search for objects to pack by assuming
+	that commit objects found in kept packfiles make reference only
+	to that or other kept packfiles.  This is very useful if, for
+	example, this repository periodically repacks all reachable objects
+	and marks the resulting pack file as kept.
+
+	Because this option may prevent git from descending into kept packs,
+	no objects inside kept packs will be available for delta processing.
+	One should therefore restrict the use of this option to situations
+	where delta processing is disabled or when relatively large amounts
+	of data are considered and the relative gain of a wider set of
+	possible delta base objects is reduced.
+
+	The simplest way to ensure transitivity of kept packs is to run `git
+	repack` with `-a` (or `-A`) and `-d` and mark all resulting packs as
+	kept, never removing the kept marker.  In practice, one may wish to
+	wait to mark packs as kept until they are sufficiently large
+	(reducing the number of pack files necessary for a given set of
+	objects) but not so large as to be unwieldy.
+
 Configuration
 -------------
 

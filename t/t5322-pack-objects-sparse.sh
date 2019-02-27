@@ -139,4 +139,30 @@ test_expect_success 'repack --sparse and fsck' '
 	git fsck
 '
 
+# Do that again, several times, with a "transitively-closed kept pack" stack
+test_expect_success 'repack --assume-pack-keep-transitive and fsck' '
+	ls .git/objects/pack/*.pack | (while read p
+	do
+		touch .git/objects/pack/$(basename $p .pack).keep
+	done) &&
+	for l in $(test_seq 1 3)
+	do
+		for i in $(test_seq 1 3)
+		do
+			for j in $(test_seq 1 3)
+			do
+				echo $l:$i:$j >f$i/f$j/data.txt
+			done
+		done &&
+		git add . &&
+		git commit -m "transitive kept pack stack layer $l" &&
+		git repack -a --assume-pack-keep-transitive &&
+		git fsck &&
+		for p in .git/objects/pack/*.pack
+		do
+			touch .git/objects/pack/$(basename $p .pack).keep
+		done
+	done
+'
+
 test_done
