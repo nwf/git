@@ -264,13 +264,12 @@ static void add_edge_parents(struct commit *commit,
 }
 
 void mark_edges_uninteresting(struct rev_info *revs,
-			      show_edge_fn show_edge,
-			      int sparse)
+			      show_edge_fn show_edge)
 {
 	struct commit_list *list;
 	int i;
 
-	if (sparse) {
+	if (revs->sparse_tree_walk) {
 		struct oidset set;
 		oidset_init(&set, 16);
 

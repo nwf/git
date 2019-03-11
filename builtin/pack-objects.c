@@ -3136,9 +3136,10 @@ static void get_object_list(int ac, const char **av)
 	if (use_delta_islands)
 		load_delta_islands(the_repository);
 
+	revs.sparse_tree_walk = !!sparse;
 	if (prepare_revision_walk(&revs))
 		die(_("revision walk setup failed"));
-	mark_edges_uninteresting(&revs, show_edge, sparse);
+	mark_edges_uninteresting(&revs, show_edge);
 
 	if (!fn_show_object)
 		fn_show_object = show_object;

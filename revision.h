@@ -145,6 +145,7 @@ struct rev_info {
 			first_parent_only:1,
 			line_level_traverse:1,
 			tree_blobs_in_commit_order:1,
+			sparse_tree_walk:1,
 
 			/*
 			 * Blobs are shown without regard for their existence.
