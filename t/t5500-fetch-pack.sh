@@ -328,7 +328,7 @@ test_expect_success 'clone shallow with --branch' '
 test_expect_success 'clone shallow object count' '
 	echo "in-pack: 3" > count3.expected &&
 	GIT_DIR=shallow3/.git git count-objects -v |
-		grep "^in-pack" > count3.actual &&
+		grep "^in-pack:" > count3.actual &&
 	test_cmp count3.expected count3.actual
 '
 
@@ -357,7 +357,7 @@ EOF
 
 	echo "in-pack: 4" > count6.expected &&
 	GIT_DIR=shallow6/.git git count-objects -v |
-		grep "^in-pack" > count6.actual &&
+		grep "^in-pack:" > count6.actual &&
 	test_cmp count6.expected count6.actual
 '
 
@@ -372,7 +372,7 @@ EOF
 
 	echo "in-pack: 4" > count7.expected &&
 	GIT_DIR=shallow7/.git git count-objects -v |
-		grep "^in-pack" > count7.actual &&
+		grep "^in-pack:" > count7.actual &&
 	test_cmp count7.expected count7.actual
 '
 
@@ -381,7 +381,7 @@ test_expect_success 'clone shallow with packed refs' '
 	git clone --depth 1 --branch A "file://$(pwd)/." shallow8 &&
 	echo "in-pack: 4" > count8.expected &&
 	GIT_DIR=shallow8/.git git count-objects -v |
-		grep "^in-pack" > count8.actual &&
+		grep "^in-pack:" > count8.actual &&
 	test_cmp count8.expected count8.actual
 '
 

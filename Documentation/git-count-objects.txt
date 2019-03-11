@@ -26,9 +26,17 @@ count: the number of loose objects
 +
 size: disk space consumed by loose objects, in KiB (unless -H is specified)
 +
+packs: the number of pack files
++
+packs-keep: the number of pack files marked kept
++
 in-pack: the number of in-pack objects
 +
+in-pack-keep: the number of objects in packs marked kept
++
 size-pack: disk space consumed by the packs, in KiB (unless -H is specified)
++
+size-pack-keep: disk space consumed by kept packs, in KiB (unless -H is specified)
 +
 prune-packable: the number of loose objects that are also present in
 the packs. These objects could be pruned using `git prune-packed`.
