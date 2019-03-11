@@ -165,6 +165,10 @@ depth is 4095.
 	Pass the `--delta-islands` option to `git-pack-objects`, see
 	linkgit:git-pack-objects[1].
 
+--sparse::
+	Pass the `--sparse` option to `git-pack-objects`; see
+	linkgit:git-pack-objects[1].
+
 Configuration
 -------------
 

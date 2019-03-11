@@ -133,4 +133,10 @@ test_expect_success 'pack.useSparse overridden' '
 	test_cmp required_objects.txt sparse_objects.txt
 '
 
+# repack --sparse invokes pack-objects --sparse
+test_expect_success 'repack --sparse and fsck' '
+	git repack -a --sparse &&
+	git fsck
+'
+
 test_done
