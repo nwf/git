@@ -525,6 +525,7 @@ static void gc_before_repack(void)
 int cmd_gc(int argc, const char **argv, const char *prefix)
 {
 	int aggressive = 0;
+	int assume_pack_keep_transitive = 0;
 	int auto_gc = 0;
 	int quiet = 0;
 	int force = 0;
@@ -547,6 +548,8 @@ int cmd_gc(int argc, const char **argv, const char *prefix)
 			   PARSE_OPT_NOCOMPLETE),
 		OPT_BOOL(0, "keep-largest-pack", &keep_base_pack,
 			 N_("repack all other packs except the largest pack")),
+		OPT_BOOL(0, "assume-pack-keep-transitive", &assume_pack_keep_transitive,
+			 N_("assume kept packs reference only kept packs")),
 		OPT_END()
 	};
 
@@ -585,6 +588,8 @@ int cmd_gc(int argc, const char **argv, const char *prefix)
 	}
 	if (quiet)
 		argv_array_push(&repack, "-q");
+	if (assume_pack_keep_transitive)
+		argv_array_push(&repack, "--assume-pack-keep-transitive");
 
 	if (auto_gc) {
 		/*

@@ -77,6 +77,10 @@ be performed as well.
 	`.keep` files are consolidated into a single pack. When this
 	option is used, `gc.bigPackThreshold` is ignored.
 
+--assume-pack-keep-transitive::
+	Pass the `--assume-pack-keep-transitive` option to `git-repack`;
+	see linkgit:git-repack[1].
+
 AGGRESSIVE
 ----------
 
